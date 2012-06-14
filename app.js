@@ -61,7 +61,7 @@ function handler(req, res) {
 redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
-      var msg = JSON.parse(msg);
+      var msg = JSON.parse(data);
       everyone.now.message({message: msg});
     }
   });
