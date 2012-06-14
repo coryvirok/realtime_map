@@ -7,6 +7,6 @@
     "redis": "*"
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js 'eventd-prod-node1.j.lumoslabs.com' 5003 events"
   }
 }

@@ -1,6 +1,20 @@
-REDIS_HOST = 'localhost';
-REDIS_PORT = 6379;
-REDIS_TOPIC = 'events';
+redis_host = 'localhost';
+redis_port = 6379;
+redis_topic = 'events';
+
+if (process.argv.length >= 3) {
+  redis_host = process.argv[2]
+  if (process.argv.length >= 4) {
+    redis_port = parseInt(process.argv[3]);
+    if (process.argv.length >= 5) {
+      redis_topic = process.argv[4];
+    }
+  }
+}
+console.log('starting realtime map with redis_host: ' + 
+            redis_host +
+            ':' + redis_port +
+            ' redis_topic: ' + redis_topic);
 
 var app = require('http').createServer(handler),
     static = require('node-static'),
@@ -44,7 +58,7 @@ io.sockets.on('connection', function (socket) {
   socket.on('join', function(name) {
     socket.get('session', function (err, session) {
       if (session === null) {
-        var redisClient = redis.createClient(REDIS_PORT, REDIS_HOST, {maxReconnectionAttempts: 2});
+        var redisClient = redis.createClient(redis_port, redis_host, {maxReconnectionAttempts: 2});
         socket.set('session', {redisClient: redisClient, name: name});
         socket.emit('ready');
       }
