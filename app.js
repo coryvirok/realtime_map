@@ -73,11 +73,11 @@ redisClient.on('ready', function() {
       var msg = JSON.parse(data);
       if (msg.message.body.visit && msg.message.body.visit.prop_map && msg.message.body.visit.prop_map.ip_address) {
         var ipAddress = msg.message.body.visit.prop_map.ip_address
-        var city = parseCityFromIP(ipAddress);
-        if (city) {
-          everyone.now.message({city: city, data: msg});
+        var geoData = parseCityFromIP(ipAddress);
+        if (geoData) {
+          everyone.now.message({geoData: geoData, data: msg});
         } else {
-          console.log('could not parse city from ip address: ' + ipAddress);
+          console.log('could not parse geoData from ip address: ' + ipAddress);
         }
       } else {
         console.log('message does not have .message.visit.prop_map.ip_address: ' + data);
@@ -88,7 +88,7 @@ redisClient.on('ready', function() {
 });
 
 var parseCityFromIP = function(ipAddress) {
-  return geoip.City.name_by_addr(geoipCityData, ipAddress);
+  return geoip.City.record_by_addr(geoipCityData, ipAddress);
 };
 
 setInterval(function() {
