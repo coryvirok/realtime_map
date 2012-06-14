@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "dependencies": {
     "socket.io": "*",
-    "node-static": "*"
+    "node-static": "*",
+    "redis": "*"
   },
   "scripts": {
     "start": "node app.js"
