@@ -12,7 +12,7 @@ $(function() {
   var marker = new L.Marker(markerLocation);
   map.addLayer(marker);
 
-  now.updateMap = function(data) {
+  now.message = function(data) {
     console.log(data);
   }
 
