@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+}
+
+svg {
+  width: 1280px;
+  height: 800px;
+  pointer-events: all;
+}
+
+#globe-background {
+  fill: #aee0f3; /*#dbe4f0;*/
+}
+
+path {
+  fill: #aaa;
+  stroke: #fff;
+}
+
+#lumoslabs {
+  fill: #f00;
+}
