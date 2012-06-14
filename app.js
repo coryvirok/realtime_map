@@ -71,8 +71,8 @@ redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
       var msg = JSON.parse(data);
-      if (msg.visit && msg.visit.prop_map && msg.visit.prop_map.ip_address) {
-        var ipAddress = msg.visit.prop_map.ip_address
+      if (msg.message.visit && msg.message.visit.prop_map && msg.message.visit.prop_map.ip_address) {
+        var ipAddress = msg.message.visit.prop_map.ip_address
         var city = parseCityFromIP(ipAddress);
         if (city) {
           everyone.now.message({city: city, data: msg});
@@ -80,7 +80,7 @@ redisClient.on('ready', function() {
           console.log('could not parse city from ip address: ' + ipAddress);
         }
       } else {
-        console.log('message does not have .visit.prop_map.ip_address: ' + data);
+        console.log('message does not have .message.visit.prop_map.ip_address: ' + data);
       }
     }
   });
