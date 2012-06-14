@@ -2,10 +2,34 @@
 <html>
   <head>
     <link rel="stylesheet" href="leaflet_dist/leaflet.css"/>
+
+    <script src='//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    <script src='//jquery-json.googlecode.com/files/jquery.json-2.2.min.js'></script>
+    <script src='//datejs.googlecode.com/svn/trunk/build/date.js'></script>
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     <div id="map" style="height: 800px"></div>
     <script src="leaflet_dist/leaflet.js"></script>
     <script src="map.js"></script>
+
+    <script>
+    $(document).ready(function() {
+      function join(name) {
+        var host = window.location.host.split(':')[0];
+        var socket = io.connect('//' + host);
+
+        // handler for ready callback
+        socket.on('ready', function () {
+          console.log('ready to start graphing!');
+        });
+
+        // send join message and wait for ready callback
+        socket.emit('join', $.toJSON({user: name}));
+      }
+
+      join('Cory');
+    });
+    </script>
   </body>
 </html>
