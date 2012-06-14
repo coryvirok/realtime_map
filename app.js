@@ -30,6 +30,7 @@ var app    = require('http').createServer(handler),
 
 
 var geoipCityData = geoip.open(geoIPDataFile);
+console.log('loaded GeoIP City data');
 
 var webroot = './static';
 var file = new(static.Server)(webroot, {
@@ -78,6 +79,8 @@ redisClient.on('ready', function() {
         } else {
           console.log('could not parse city from ip address: ' + ipAddress);
         }
+      } else {
+        console.log('message does not have .visit.prop_map.ip_address: ' msg);
       }
     }
   });
