@@ -80,7 +80,7 @@ redisClient.on('ready', function() {
           console.log('could not parse city from ip address: ' + ipAddress);
         }
       } else {
-        console.log('message does not have .visit.prop_map.ip_address: ' msg);
+        console.log('message does not have .visit.prop_map.ip_address: ' + msg);
       }
     }
   });
