@@ -60,7 +60,9 @@ function handler(req, res) {
 
 redisClient.on('ready', function() {
   redisClient.on('message', function(channel, message) {
-    everyone.now.message({message: message});
+    if (everyone.now.message) {
+      everyone.now.message({message: message});
+    }
   });
   redisClient.subscribe(redis_topic);
 });
