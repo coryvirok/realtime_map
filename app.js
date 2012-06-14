@@ -71,7 +71,7 @@ redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
       var msg = JSON.parse(data);
-      console.log(msg.message.body.evet.name);
+      console.log(msg.message.body.event.name);
       if (msg.message.body.visit && msg.message.body.visit.prop_map && msg.message.body.visit.prop_map.ip_address) {
         var ipAddress = msg.message.body.visit.prop_map.ip_address
         var geoData = parseCityFromIP(ipAddress);
