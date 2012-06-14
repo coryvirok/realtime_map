@@ -88,7 +88,7 @@ redisClient.on('ready', function() {
 });
 
 var parseCityFromIP = function(ipAddress) {
-  return geoip.City.name_by_addr(geoIPData, ipAddress);
+  return geoip.City.name_by_addr(geoipCityData, ipAddress);
 };
 
 setInterval(function() {
