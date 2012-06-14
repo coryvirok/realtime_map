@@ -2,9 +2,9 @@
   "name": "realtime_map",
   "version": "0.0.1",
   "dependencies": {
-    "socket.io": "*",
     "node-static": "*",
-    "redis": "*"
+    "redis": "*",
+    "now": "*"
   },
   "scripts": {
     "start": "node app.js 'eventd-prod-node1.j.lumoslabs.com' 5003 events"

@@ -16,18 +16,29 @@ console.log('starting realtime map with redis_host: ' +
             ':' + redis_port +
             ' redis_topic: ' + redis_topic);
 
-var app = require('http').createServer(handler),
+var app    = require('http').createServer(handler),
     static = require('node-static'),
-    io = require('socket.io').listen(app),
-    fs = require('fs'),
-    redis = require('redis'),
-    util = require('util');
+    fs     = require('fs'),
+    redis  = require('redis'),
+    util   = require('util'),
+    nowjs  = require('now');
 
 var webroot = './static';
 var file = new(static.Server)(webroot, {
   cache: 600,
   headers: {'X-Powered-By': 'Team Jeans'}
 });
+
+var redisClient = redis.createClient(redis_port, redis_host, {maxReconnectionAttempts: 2});
+redisClient.on('ready', function() {
+  console.log('Redis is ready');
+})
+
+app.on('close', function() {
+  redisClient.quit();
+})
+
+var everyone = nowjs.initialize(app);
 
 app.listen(5000);
 
@@ -42,39 +53,14 @@ function handler(req, res) {
           res.writeHead(err.status, err.headers);
           res.end();
         }
-      } else {
-        console.log('%s - %s', req.url, res.message);
       }
     });
   });
 }
 
-io.configure( function() {
-  io.set('close timeout', 60 * 60 * 24); // 24h time out
-});
+setInterval(function() {
+  // updateMap isn't defined unless a client has connected
+  if (!everyone.now.updateMap) return;
 
-io.sockets.on('connection', function (socket) {
-
-  socket.on('join', function(name) {
-    socket.get('session', function (err, session) {
-      if (session === null) {
-        var redisClient = redis.createClient(redis_port, redis_host, {maxReconnectionAttempts: 2});
-        socket.set('session', {redisClient: redisClient, name: name});
-        socket.emit('ready');
-      }
-    });
-  });
-
-  socket.on('disconnect', function () {
-    socket.get('session', function (err, session) {
-      console.log('Disconnect ', session.name ? session.name : 'Unknown client');
-      if (session !== null) {
-        var client = session.redisClient;
-        if (client) {
-          client.quit();
-        }
-      }
-    });
-    socket.emit('ready');
-  });
-});
+  everyone.now.updateMap({foo: 'bar'});
+}, 5000);
