@@ -21,7 +21,11 @@ var app    = require('http').createServer(handler),
     fs     = require('fs'),
     redis  = require('redis'),
     util   = require('util'),
-    nowjs  = require('now');
+    nowjs  = require('now'),
+    geoip  = require('geoip');
+
+
+var geoipCityData = geoip.open(geoipDataFile);
 
 var webroot = './static';
 var file = new(static.Server)(webroot, {
@@ -62,11 +66,23 @@ redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
       var msg = JSON.parse(data);
-      everyone.now.message(msg);
+      if (msg.visit && msg.visit.prop_map && msg.visit.prop_map.ip_address) {
+        var ipAddress = msg.visit.prop_map.ip_address
+        var city = parseCityFromIP(ipAddress);
+        if (city) {
+          everyone.now.message({city: city, data: msg});
+        } else {
+          console.log('could not parse city from ip address: ' + ipAddress);
+        }
+      }
     }
   });
   redisClient.subscribe(redis_topic);
 });
+
+var parseCityFromIP = function(ipAddress) {
+  return geoip.City.name_by_addr(geoipData, ipAddress);
+};
 
 setInterval(function() {
   // updateMap isn't defined unless a client has connected
