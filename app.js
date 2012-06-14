@@ -58,9 +58,17 @@ function handler(req, res) {
   });
 }
 
+redisClient.on('ready', function() {
+  redisClient.on('message', function(channel, message) {
+    everyone.now.message({message: message});
+  });
+  redisClient.subscribe(redis_topic);
+});
+
 setInterval(function() {
   // updateMap isn't defined unless a client has connected
-  if (!everyone.now.updateMap) return;
-
+  if (!everyone.now.updateMap) {
+    return;
+  }
   everyone.now.updateMap({foo: 'bar'});
 }, 5000);
