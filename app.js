@@ -1,20 +1,24 @@
-redis_host = 'localhost';
-redis_port = 6379;
-redis_topic = 'events';
+var redisHost = 'localhost';
+var redisPort = 6379;
+var redisTopic = 'events';
+var geoIPDataFile = 'GeoLiteCity.dat';
 
 if (process.argv.length >= 3) {
-  redis_host = process.argv[2]
+  redisHost = process.argv[2]
   if (process.argv.length >= 4) {
-    redis_port = parseInt(process.argv[3]);
+    redisPort = parseInt(process.argv[3]);
     if (process.argv.length >= 5) {
-      redis_topic = process.argv[4];
+      redisTopic = process.argv[4];
+      if (process.argv.length >= 6) {
+        geoIPDataFile = process.argv[5];
+      }
     }
   }
 }
-console.log('starting realtime map with redis_host: ' + 
-            redis_host +
-            ':' + redis_port +
-            ' redis_topic: ' + redis_topic);
+console.log('starting realtime map with redisHost: ' + 
+            redisHost +
+            ':' + redisPort +
+            ' redisTopic: ' + redisTopic);
 
 var app    = require('http').createServer(handler),
     static = require('node-static'),
@@ -25,7 +29,7 @@ var app    = require('http').createServer(handler),
     geoip  = require('geoip');
 
 
-var geoipCityData = geoip.open(geoipDataFile);
+var geoipCityData = geoip.open(geoIPDataFile);
 
 var webroot = './static';
 var file = new(static.Server)(webroot, {
@@ -33,7 +37,7 @@ var file = new(static.Server)(webroot, {
   headers: {'X-Powered-By': 'Team Jeans'}
 });
 
-var redisClient = redis.createClient(redis_port, redis_host, {maxReconnectionAttempts: 2});
+var redisClient = redis.createClient(redisPort, redisHost, {maxReconnectionAttempts: 2});
 redisClient.on('ready', function() {
   console.log('Redis is ready');
 })
@@ -77,7 +81,7 @@ redisClient.on('ready', function() {
       }
     }
   });
-  redisClient.subscribe(redis_topic);
+  redisClient.subscribe(redisTopic);
 });
 
 var parseCityFromIP = function(ipAddress) {
