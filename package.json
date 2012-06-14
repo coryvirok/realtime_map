@@ -7,6 +7,6 @@
     "now": "*"
   },
   "scripts": {
-    "start": "node app.js 'eventd-prod-node1.j.lumoslabs.com' 5003 events"
+    "start": "node app.js 10.12.26.184 5003 events"
   }
 }
