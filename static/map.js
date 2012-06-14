@@ -39,25 +39,14 @@ $(function() {
 
     feature.append("svg:title").text(function(d) { return d.properties.name; });
 
-    var lumoslabs = {
+    point = svg.append('svg:path').data([{
       "type": "Feature",
-      "properties": {"name":"Lumos Labs"},
+      "properties": {"name": "Lumos Labs"},
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [-122.403743, 37.789577],
-          [-121.403743, 37.789577],
-          [-121.403743, 38.789577],
-          [-122.403743, 38.789577],
-          [-122.403743, 37.789577],
-        ]]
+        "type": "Point",
+        "coordinates": [-122.403743, 37.789577],
       }
-    };
-
-    point = svg.append('svg:path').data([lumoslabs])
-      .attr('id', 'lumoslabs')
-      .attr('d', clip);
-
+    }]).attr('id', 'lumoslabs').attr('d', clip);
   });
 
   d3.select(window)
