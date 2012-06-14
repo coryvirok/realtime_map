@@ -67,7 +67,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () {
     socket.get('session', function (err, session) {
-      console.log('Disconnect ', session.name);
+      console.log('Disconnect ', session.name ? session.name : 'Unknown client');
       if (session !== null) {
         var client = session.redisClient;
         if (client) {
