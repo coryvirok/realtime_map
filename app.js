@@ -136,7 +136,7 @@ redisClient.on('ready', function() {
                 console.log('updated region index, ' + geoData.country_name + ', ' + geoData.region + ': ' + regionIndex.counter);
               }
             } else {
-              console.log('unknown country name: ' + geoData.country_name);
+              console.log('unknown country name/data: ' + geoData.country_name + '\n' + JSON.stringify(geoData));
             }
 
             // store a counter for events so we can send to clients on load
