@@ -180,7 +180,7 @@ var parseCityFromIP = function(ipAddress) {
 };
 
 var pruneTimestamps = function(timestamps) {
-  var now = (new Date()).getMilliseconds();
+  var now = (new Date()).getTime();
   var cutOff = now - timestamp_lifetime_ms;
 
   return timestamps.filter(function(element, index, array) {
