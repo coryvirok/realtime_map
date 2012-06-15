@@ -79,10 +79,10 @@ console.log('loaded US states geo data');
 
 // Stores counters for locations and events seen since server startup
 var indexData = indexGeoData(worldCountriesData, usStatesData);
-var bucketIndex = {countries: indexData,
-                   events: {}};
+var bucketIndex = {countries: indexData, events: {}};
 
 console.log('indexed geo data');
+console.log(bucketIndex.countries.USA);
 
 
 /***** Instantiate and start the server *****/
@@ -139,15 +139,16 @@ redisClient.on('ready', function() {
             var countryIndex = bucketIndex.countries[geoData.country_code3];
             if (countryIndex) {
               var regionIndex = countryIndex.childIndex[geoData.region];
+              console.log('region: ' + geoData.region);
               countryIndex.counter = (countryIndex.counter || 0) + 1;
-              console.log('updated country index, ' + geoData.country_name + ': ' + countryIndex.counter);
+              console.log('updated country index, ' + geoData.country_code3 + ': ' + countryIndex.counter);
 
               if (regionIndex) {
                 regionIndex.counter = (regionIndex.counter || 0) + 1;
-                console.log('updated region index, ' + geoData.country_name + ', ' + geoData.region + ': ' + regionIndex.counter);
+                console.log('updated region index, ' + geoData.country_code3 + ', ' + geoData.region + ': ' + regionIndex.counter);
               }
             } else {
-              console.log('> unknown country name/data: ' + geoData.country_name);
+              console.log('> unknown country name/data: ' + geoData.country_code3);
               console.log('> ' + JSON.stringify(geoData));
             }
 
