@@ -54,7 +54,7 @@ var indexGeoData = function(countriesGeoData, usStatesGeoData) {
       if (usId) {
         curName = curFeature.id;
       } else {
-        curName = curFeature.properties.name;
+        curName = curFeature.properties.abbrev;
       }
       ret[curName] = {counter: 0, childIndex: {}};
     }
