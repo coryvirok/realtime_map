@@ -69,80 +69,87 @@ class GameplayView
       .style('margin-left', 50)
 
     @events = {}
+    @max = 1
     for game, area of @gameBrainAreas
       @events[area] or= {}
       @events[area][game] = {game: game, count: 1, times: []}
-      @events[area][game].count = 4 if game == 'Familiar Faces'
-      @events[area][game].count = 3 if game == 'Name Tag'
 
-    for area_name, i in ['Memory', 'Attention', 'Speed', 'Flexibility', 'Problem Solving']
-      @buildArea(area_name, i)
+    @buildAreas()
 
-  buildArea: (area_name, offset) ->
-    areaGames = @events[area_name]
-    data = (v for k, v of areaGames)
+  buildAreas: (area_name, offset) ->
     height = @svg.attr('height')
     width = @svg.attr('width')
 
-    x = d3.scale.linear()
-      .domain([0, d3.max(d.count for d in data)])
+    @x = d3.scale.linear()
+      .domain([0, @max])
       .range([0, width])
 
-    start_y = height * offset / 5 + 20
-    y = d3.scale.ordinal()
-      .domain([0..@gamesPerSection-1])
-      .rangeRoundBands([start_y, start_y + height / 5 - 30], .1)
+    area_setups = []
+    for area_name, offset in ['Memory', 'Attention', 'Speed', 'Flexibility', 'Problem Solving']
 
-    area = @svg.append('g').attr('data-area', area_name)
+      areaGames = @events[area_name]
+      data = (v for k, v of areaGames)
 
-    area.append('text')
-      .attr('x', 0)
-      .attr('y', start_y - 5)
-      .text(area_name)
-      .attr('class', 'area-title')
+      start_y = height * offset / 5 + 20
+      y = d3.scale.ordinal()
+        .domain([0..@gamesPerSection-1])
+        .rangeRoundBands([start_y, start_y + height / 5 - 30], .1)
 
-    bar = area.selectAll(".bar")
-      .data(data)
-      .enter().append("g")
-      .attr("class", "bar")
-      .sort((d1, d2) -> d2.count - d1.count)
-      .attr("transform", (d, i) -> "translate(0,#{y(i)})")
-      .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
+      area = @svg.append('g').attr('data-area', area_name)
 
-    bar.append("rect")
-      .attr("height", y.rangeBand() - 3)
-      .attr("width", (d) -> x(d.count) - 10)
+      area.append('text')
+        .attr('x', 0)
+        .attr('y', start_y - 5)
+        .text(area_name)
+        .attr('class', 'area-title')
 
-    bar.append("text")
-      .attr("x", 10)
-      .attr("y", y.rangeBand() / 2)
-      .attr("dy", ".25em")
-      .text((d) -> d.game)
+      bar = area.selectAll(".bar")
+        .data(data)
+        .enter().append("g")
+        .attr("class", "bar")
+        .sort((d1, d2) -> d2.count - d1.count)
+        .attr("transform", (d, i) -> "translate(0,#{y(i)})")
+        .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
 
-    bar.append('text')
-      .attr('class', 'count')
-      .attr('x', width)
-      .attr('text-anchor', 'end')
-      .attr("y", y.rangeBand() / 2)
-      .attr("dy", ".25em")
-      .text((d) -> d.count)
+      bar.append("rect")
+        .attr("height", y.rangeBand() - 3)
+        .attr("width", (d) => @x(d.count) - 30)
 
-    setInterval (=> @refresh(area_name, bar, x, y)), 1000
+      bar.append("text")
+        .attr("x", 10)
+        .attr("y", y.rangeBand() / 2)
+        .attr("dy", ".25em")
+        .text((d) -> d.game)
 
-  refresh: (area_name, bar, x, y) ->
+      bar.append('text')
+        .attr('class', 'count')
+        .attr('x', width)
+        .attr('text-anchor', 'end')
+        .attr("y", y.rangeBand() / 2)
+        .attr("dy", ".25em")
+        .text((d) -> d.count)
 
-    data = (v for k, v of @events[area_name])
-    x.domain([0, d3.max(d.count for d in data)])
+      area_setups.push [bar, y]
 
-    bar.sort((d1, d2) -> d2.count - d1.count)
-      .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
-      .transition()
-      .duration(500)
-      .delay((d, i) -> i * 50)
-      .attr("transform", (d, i) -> "translate(0,#{y(i)})")
+    setInterval (=> @refresh(area_setups)), 1000
 
-    bar.selectAll('[visibility="visible"] rect').attr("width", (d) -> x(d.count) - 10)
-    bar.selectAll('[visibility="visible"] .count').text((d) -> d.count)
+  refresh: (area_setups) ->
+    @x.domain [0, @max]
+
+    for setup in area_setups
+      do (setup, @x, @gamesPerSection) ->
+        bar = setup[0]
+        y = setup[1]
+        bar.sort((d1, d2) -> d2.count - d1.count)
+          .attr('visibility', (d, i) => 
+            if i < @gamesPerSection then 'visible' else 'hidden')
+          .transition()
+          .duration(500)
+          .delay((d, i) -> i * 50)
+          .attr("transform", (d, i) -> "translate(0,#{setup[1](i)})")
+
+        bar.selectAll('[visibility="visible"] rect').attr("width", (d) => @x(d.count) - 30)
+        bar.selectAll('[visibility="visible"] .count').text((d) -> d.count)
 
   addEvent: (event) ->
     game = event.prop_map.game
@@ -153,5 +160,6 @@ class GameplayView
       return
     @events[area][game].times.push new Date().getTime()
     @events[area][game].count += 1
+    @max = Math.max @events[area][game].count, @max
 
 window.GameplayView = GameplayView
