@@ -3,8 +3,6 @@ body {
 }
 
 svg {
-  width: 1280px;
-  height: 800px;
   pointer-events: all;
 }
 
@@ -31,7 +29,7 @@ path {
 }
 
 #events path {
-  fill: #fe9;
+  fill: #fff;
   stroke: none;
 }
 
@@ -39,4 +37,12 @@ path {
   position: absolute;
   right: 5px;
   top: 5px;
+}
+
+#events path.game_start {
+  fill: #0f0;
+}
+
+#events path.game_finish {
+  fill: #f00;
 }

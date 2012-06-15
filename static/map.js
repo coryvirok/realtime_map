@@ -4,11 +4,12 @@ $(function() {
 
   var WIDTH = $(window).width(), HEIGHT = $(window).height();
   var RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20;
-  var POINT_TIMEOUT_MS = 10000;
+  var POINT_TIMEOUT_MS = 1000;
 
   var features = {};
 
-  // window.now = nowInitialize('http://8.19.35.8:5000');
+  if (location.search.match(/joyent/))
+    window.now = nowInitialize('http://8.19.35.8:5000');
 
   var projection = d3.geo.azimuthal()
       .scale(RADIUS)
@@ -18,7 +19,7 @@ $(function() {
 
   var circle = d3.geo.circle().origin(projection.origin());
 
-  var path = d3.geo.path().projection(projection);
+  var path = d3.geo.path().projection(projection).pointRadius(1.5);
 
   var svg = d3.select("#map").append("svg:svg")
       .attr("width", WIDTH)
@@ -155,12 +156,14 @@ $(function() {
         if (paused) return;
 
         var eventName = data.data.message.body.event.name;
-        if (!window.eventNames) window.eventNames = {};
-        if (!window.eventNames[eventName]) {
-          window.eventNames[eventName] = data;
+        if (!window.eventLog) window.eventLog = {};
+        if (!eventLog[eventName]) {
+          eventLog[eventName] = {sample: data, count: 1};
           console.log(eventName);
+        } else {
+          eventLog[eventName].count += 1;
         }
-        if (eventName != 'game_finish') return;
+        // if (eventName != 'game_finish') return;
 
         // console.log(data);
         var geoData = data.geoData;
@@ -179,7 +182,7 @@ $(function() {
               "coordinates": [longitude, latitude]
             }
           }])
-          .attr('d', clip)
+          .attr('d', clip).classed(eventName, true);
       }
 
     });
