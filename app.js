@@ -117,11 +117,15 @@ redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
       var msg = JSON.parse(data);
-      if (eventWhitelist[msg.message.body.event.name]) {
+      var eventName = msg.message.body.event.name;
+      if (eventWhitelist[eventName]) {
         if (msg.message.body.visit && msg.message.body.visit.prop_map && msg.message.body.visit.prop_map.ip_address) {
           var ipAddress = msg.message.body.visit.prop_map.ip_address
           var geoData = parseCityFromIP(ipAddress);
           if (geoData) {
+            // store a counter for events so we can send to clients on load
+            bucketIndex.events[eventName] = (bucketIndex.events[eventName] || 0) + 1;
+
             everyone.now.message({geoData: geoData, data: msg});
           } else {
             console.log('could not parse geoData from ip address: ' + ipAddress);
@@ -147,4 +151,8 @@ everyone.now.togglePause = function() {
 
 everyone.now.start = function() {
   this.now.pause(pause);
+}
+
+everyone.now.getIndex = function() {
+  this.now.receiveIndex(bucketIndex);
 }

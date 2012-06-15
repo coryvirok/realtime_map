@@ -190,3 +190,6 @@ $ ->
       # Handle new messages from the server
       now.message = handleNewEvent
       now.ready -> now.start()
+  
+  now.receiveIndex = (index) ->
+    console.log index
