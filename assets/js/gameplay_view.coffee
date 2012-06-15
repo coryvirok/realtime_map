@@ -72,9 +72,11 @@ class GameplayView
     @max = 1
     for game, area of @gameBrainAreas
       @events[area] or= {}
-      @events[area][game] = {game: game, count: 1, times: []}
+      @events[area][game] = {game: game, count: 0, times: []}
 
     @buildAreas()
+
+  barWidth: (d) => Math.max(@x(d.count) - 30, 1)
 
   buildAreas: (area_name, offset) ->
     height = @svg.attr('height')
@@ -113,7 +115,7 @@ class GameplayView
 
       bar.append("rect")
         .attr("height", y.rangeBand() - 3)
-        .attr("width", (d) => @x(d.count) - 30)
+        .attr("width", @barWidth)
 
       bar.append("text")
         .attr("x", 10)
@@ -134,10 +136,24 @@ class GameplayView
     setInterval (=> @refresh(area_setups)), 1000
 
   refresh: (area_setups) ->
+    newmax = 0
+    now = new Date().getTime()
+    for area, game of @events
+      for game_name, info of game
+        do (info, newmax, now) ->
+          before = info.times.length
+          newtimes = (time for time in info.times when now - time < 3600000)
+          if newtimes.length < before
+            info.times = newtimes
+            info.count = info.times.length
+            console.log("trimmed #{info.game} times from #{before} to #{info.count}")
+          newmax = Math.max(newmax, info.count)
+
+    @max = Math.max(@max, newmax)
     @x.domain [0, @max]
 
     for setup in area_setups
-      do (setup, @x, @gamesPerSection) ->
+      do (setup, @x, @gamesPerSection, @barWidth) ->
         bar = setup[0]
         y = setup[1]
         bar.sort((d1, d2) -> d2.count - d1.count)
@@ -148,7 +164,7 @@ class GameplayView
           .delay((d, i) -> i * 50)
           .attr("transform", (d, i) -> "translate(0,#{setup[1](i)})")
 
-        bar.selectAll('[visibility="visible"] rect').attr("width", (d) => @x(d.count) - 30)
+        bar.selectAll('[visibility="visible"] rect').attr("width", @barWidth)
         bar.selectAll('[visibility="visible"] .count').text((d) -> d.count)
 
   addEvent: (event) ->

@@ -73,3 +73,12 @@ path {
 #sidebar text.area-title {
   fill: #f26437;
 }
+
+#sidebar #footnote {
+  font-family: 'PT Sans', sans-serif;
+  font-size: 0.8em;
+  right: 50px;
+  bottom: 10px;
+  position: absolute;
+  color: #7e8082;
+}
