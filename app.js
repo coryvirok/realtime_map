@@ -136,7 +136,7 @@ redisClient.on('ready', function() {
           if (geoData) {
 
             // Increment country and region indices
-            var countryIndex = bucketIndex.countries[geoData.country_name] || countryCodeMapping.countries[geoData.country_code3];
+            var countryIndex = bucketIndex.countries[geoData.country_name] || countryCodeMapping[geoData.country_code3];
             if (countryIndex) {
               var regionIndex = countryIndex.childIndex[geoData.region];
               countryIndex.counter = (countryIndex.counter || 0) + 1;
