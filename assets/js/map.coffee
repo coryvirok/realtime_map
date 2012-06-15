@@ -5,7 +5,7 @@
 m0 = null
 o0 = null
 
-paused = false
+running = false
 refresh_count = 0
 window.eventLog = {}
 
@@ -133,7 +133,7 @@ $ ->
       properties.hits += 1
 
   handleNewEvent = (data) ->
-    return if paused
+    return unless running
 
     eventName = data.data.message.body.event.name
     if !eventLog[eventName]
@@ -179,14 +179,14 @@ $ ->
         circle.origin(newOrigin)
         refresh()
 
-      window.pause = ->
-        paused = true
-        clearInterval turning
-
-      window.play = ->
-        turning = setInterval (-> turn(0.2)), 10
+      now.pause = (pause) ->
+        if pause
+          clearInterval turning
+          running = false
+        else if !running
+          turning = setInterval (-> turn(0.2)), 10
+          running = true
 
       # Handle new messages from the server
       now.message = handleNewEvent
-
-      play()
+      now.ready -> now.start()

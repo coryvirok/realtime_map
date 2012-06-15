@@ -43,6 +43,10 @@ app.get('/map', function(req, res, next) {
   res.render('map.jade');
 });
 
+app.get('/controls', function(req, res, next) {
+  res.render('controls.jade');
+});
+
 app.listen(5000);
 
 var geoipCityData = geoip.open(geoIPDataFile);
@@ -90,3 +94,13 @@ redisClient.on('ready', function() {
 var parseCityFromIP = function(ipAddress) {
   return geoip.City.record_by_addr(geoipCityData, ipAddress);
 };
+
+var pause = false;
+everyone.now.togglePause = function() {
+  pause = !pause;
+  everyone.now.pause(pause);
+};
+
+everyone.now.start = function() {
+  this.now.pause(pause);
+}
