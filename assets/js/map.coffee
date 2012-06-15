@@ -1,6 +1,10 @@
 # TODO
 # attach icons to points
 
+# for dragging
+m0 = null
+o0 = null
+
 paused = false
 refresh_count = 0
 window.eventLog = {}
@@ -9,9 +13,7 @@ POINT_TIMEOUT_MS = 1000
 DECAY_STEP = 10
 DECAY_FACTOR = 0.98
 BASE_FILL_COLOR = d3.rgb("#aaa")
-
-# with '#aaa', hits / this should always be less than 12
-HITS_NORMALIZER = 100
+HITS_NORMALIZER = 50
 
 $ ->
   $window = $(window)
@@ -32,6 +34,11 @@ $ ->
 
   circle = d3.geo.circle().origin(projection.origin())
   path = d3.geo.path().projection(projection).pointRadius(1.5)
+
+  mousedown = ->  
+    m0 = [d3.event.pageX, d3.event.pageY]
+    o0 = projection.origin()
+    d3.event.preventDefault()
 
   svg = d3.select("#map").append("svg:svg")
     .attr("width", WIDTH)
@@ -65,6 +72,7 @@ $ ->
         .data(collection.features)
         .enter().append("svg:path")
         .attr("d", clip)
+        .attr('data-state', (d) -> d.properties.abbrev)
 
       features.lumos = svg.append('svg:path')
         .data([{
@@ -79,16 +87,6 @@ $ ->
         .attr('d', clip)
 
       onComplete?()
-
-  m0 = null
-  o0 = null
-
-  # FIXME mouse dragging is broken
-
-  mousedown = ->  
-    m0 = [d3.event.pageX, d3.event.pageY]
-    o0 = projection.origin()
-    d3.event.preventDefault()
 
   mousemove = ->
     if m0?
@@ -105,6 +103,14 @@ $ ->
 
   d3.select(window).on("mousemove", mousemove).on("mouseup", mouseup)
 
+  updateFill = (d) ->
+    d.properties.hits or= 0
+    d.properties.hits *= DECAY_FACTOR
+    darken_factor = d.properties.hits / HITS_NORMALIZER
+    console.log("#{d.properties.name} #{darken_factor}") if darken_factor > 12
+    new_color = BASE_FILL_COLOR.darker(darken_factor).toString()
+    new_color
+
   refresh = ->
     refresh_count += 1
     now = new Date().getTime()
@@ -113,17 +119,18 @@ $ ->
     features.events = events.selectAll('path')
 
     if refresh_count % DECAY_STEP == 0
-      features.countries.style 'fill', (d) ->
-        d.properties.hits or= 0
-        d.properties.hits *= DECAY_FACTOR
-        darken_factor = d.properties.hits / HITS_NORMALIZER
-        console.log("#{d.properties.name} #{darken_factor}") if darken_factor > 12
-        new_color = BASE_FILL_COLOR.darker(darken_factor).toString()
-        new_color
+      features.countries.style 'fill', updateFill
+      features.states.style 'fill', updateFill
 
     paths.attr 'd', clip for name, paths of features
 
   clip = (d) -> path circle.clip(d)
+
+  incrementHits = (path) ->
+    if path_data = path.data()[0]
+      properties = path_data.properties
+      properties.hits or= 0
+      properties.hits += 1
 
   handleNewEvent = (data) ->
     return if paused
@@ -139,12 +146,10 @@ $ ->
     longitude = geoData.longitude
     countryName = geoData.country_name
 
-    country = d3.select("[data-country='#{countryName}']")
-    if country_data = country.data()[0]
-      # console.log country_data.properties.name
-      properties = country_data.properties 
-      properties.hits or= 0
-      properties.hits += 1
+    if countryName == "United States"
+      incrementHits d3.select("[data-state='#{geoData.region}']")
+    else
+      incrementHits d3.select("[data-country='#{countryName}']")
 
     events.append('svg:path')
       .data([{
