@@ -1,26 +1,14 @@
+var paused = false;
 
 $(function() {
 
   var WIDTH = $(window).width(), HEIGHT = $(window).height();
   var RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20;
-  var POINT_TIMEOUT_MS = 2000;
+  var POINT_TIMEOUT_MS = 10000;
 
   var features = {};
-  var plotQueue = [];
 
-  /* 
-   * Handle new messages from the server
-   */
-  now.message = function(data) {
-    // console.log(data);
-    var geoData = data.geoData;
-    var latitude = geoData.latitude;
-    var longitude = geoData.longitude;
-    var countryName = geoData.country_name;
-
-    plotQueue.push([latitude, longitude, (new Date().getMilliseconds() + POINT_TIMEOUT_MS)]);
-  }
-
+  // window.now = nowInitialize('http://8.19.35.8:5000');
 
   var projection = d3.geo.azimuthal()
       .scale(RADIUS)
@@ -42,6 +30,8 @@ $(function() {
     .attr('r', RADIUS)
     .attr('cx', WIDTH/2)
     .attr('cy', HEIGHT/2);
+
+  var events;
 
   var loadCountries = function(onComplete) {
     d3.json("world-countries.json", function(collection) {
@@ -117,12 +107,11 @@ $(function() {
     var index;
     var cur;
 
-    prunePlotQueue();
-    for (index = 0; index < plotQueue.length; ++index) {
-      cur = plotQueue[index];
-      plotLatLon(cur[0], cur[1]);
-    }
-    
+    var now = new Date().getTime();
+
+    events.selectAll('path').filter(function(d, i) { return d.properties.expire < now }).remove();
+    features['events'] = events.selectAll('path');
+
     $.each(features, function(name, paths) {
       paths.attr('d', clip);
     })
@@ -132,29 +121,12 @@ $(function() {
     return path(circle.clip(d));
   }
 
-  function plotLatLon(latitude, longitude) {
-    // implement me
-  }
-
-  function prunePlotQueue() {
-    var tmp = [];
-    var index;
-    var cur;
-    var now = (new Date()).getMilliseconds();
-
-    for (index = 0; index < plotQueue.length; ++index) {
-      cur = plotQueue[index];
-      if (cur.timeout > now) {
-        tmp.push(cur);
-      }
-    }
-
-    plotQueue = tmp;
-  }
-
   loadCountries(function() {
     loadStates(function() {
 
+      // this must be added after the countries and states in order to show up above them
+      events = svg.append('svg:g').attr('id', 'events');
+      
       var turning;
 
       window.turn = function(degrees) {
@@ -166,6 +138,7 @@ $(function() {
       }
 
       window.pause = function() {
+        paused = true;
         clearInterval(turning);
       };
 
@@ -174,6 +147,41 @@ $(function() {
       };
 
       play();
+
+      /* 
+       * Handle new messages from the server
+       */
+      now.message = function(data) {
+        if (paused) return;
+
+        var eventName = data.data.message.body.event.name;
+        if (!window.eventNames) window.eventNames = {};
+        if (!window.eventNames[eventName]) {
+          window.eventNames[eventName] = data;
+          console.log(eventName);
+        }
+        if (eventName != 'game_finish') return;
+
+        // console.log(data);
+        var geoData = data.geoData;
+        var latitude = geoData.latitude;
+        var longitude = geoData.longitude;
+        var countryName = geoData.country_name;
+
+        events.append('svg:path')
+          .data([{
+            "type": "Feature",
+            "properties": {
+              "expire": new Date().getTime() + POINT_TIMEOUT_MS
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [longitude, latitude]
+            }
+          }])
+          .attr('d', clip)
+      }
+
     });
   });
 

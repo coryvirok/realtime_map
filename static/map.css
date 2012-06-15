@@ -30,6 +30,11 @@ path {
   fill: #f00;
 }
 
+#events path {
+  fill: #fe9;
+  stroke: none;
+}
+
 #controls {
   position: absolute;
   right: 5px;
