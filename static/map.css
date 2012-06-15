@@ -1,5 +1,6 @@
 body {
   margin: 0;
+  background: #f26437;
 }
 
 svg {
@@ -7,11 +8,13 @@ svg {
 }
 
 #globe-background {
-  fill: #aee0f3; /*#dbe4f0;*/
+  fill: #299bd3;
+  stroke: #fff;
+  stroke-width: 6px;
 }
 
 path {
-  fill: #aaa;
+  fill: #fff;
   stroke: #fff;
 }
 
@@ -28,21 +31,23 @@ path {
   fill: #f00;
 }
 
-#events path {
-  fill: #fff;
-  stroke: none;
-}
-
 #controls {
   position: absolute;
   right: 5px;
   top: 5px;
 }
 
-#events path.game_start {
-  fill: #0f0;
+#events path {
+  fill: none;
+  stroke: none;
 }
 
 #events path.game_finish {
-  fill: #f00;
+  fill: #ff0;
+}
+
+#events path.purchase_subscription {
+  fill: #91ca6e;
+  stroke: #91ca6e;
+  stroke-width: 10px;
 }

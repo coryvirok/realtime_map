@@ -1,11 +1,25 @@
+# TODO
+# attach icons to points
+
+# for dragging
+m0 = null
+o0 = null
+
 paused = false
+refresh_count = 0
+window.eventLog = {}
+
+POINT_TIMEOUT_MS = 500
+DECAY_STEP = 10
+DECAY_FACTOR = 0.98
+BASE_FILL_COLOR = d3.rgb("#fff")
+HITS_NORMALIZER = 80
 
 $ ->
   $window = $(window)
   WIDTH = $window.width()
   HEIGHT = $window.height()
   RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20
-  POINT_TIMEOUT_MS = 1000
   features = {}
   events = null
 
@@ -19,8 +33,12 @@ $ ->
     .translate([WIDTH/2, HEIGHT/2])
 
   circle = d3.geo.circle().origin(projection.origin())
+  path = d3.geo.path().projection(projection)
 
-  path = d3.geo.path().projection(projection).pointRadius(1.5)
+  mousedown = ->  
+    m0 = [d3.event.pageX, d3.event.pageY]
+    o0 = projection.origin()
+    d3.event.preventDefault()
 
   svg = d3.select("#map").append("svg:svg")
     .attr("width", WIDTH)
@@ -35,34 +53,34 @@ $ ->
 
   loadCountries = (onComplete) ->
     d3.json "world-countries.json", (collection) ->
-      countries = svg.append('svg:g')
+      features.countries = svg.append('svg:g')
         .attr('id', 'countries')
         .selectAll("path")
         .data(collection.features)
         .enter().append("svg:path")
         .attr("d", clip)
+        .attr("data-country", (d) -> d.properties.name)
 
-      countries.append("svg:title").text (d) -> d.properties.name
-      features['countries'] = countries
-
+      features.countries.append("svg:title").text (d) -> d.properties.name
       onComplete?()
       
   loadStates = (onComplete) ->
     d3.json 'us-states.json', (collection) ->
-      features['states'] = svg.append('svg:g')
+      features.states = svg.append('svg:g')
         .attr('id', 'states')
         .selectAll("path")
         .data(collection.features)
         .enter().append("svg:path")
         .attr("d", clip)
+        .attr('data-state', (d) -> d.properties.abbrev)
 
-      features['lumos'] = svg.append('svg:path')
+      features.lumos = svg.append('svg:path')
         .data([{
           "type": "Feature",
           "properties": {"name": "Lumos Labs"},
           "geometry": {
             "type": "Point",
-            "coordinates": [-122.403743, 37.789577],
+            "coordinates": [-122.403743, 37.789577]
           }
         }])
         .attr('id', 'lumoslabs')
@@ -70,20 +88,8 @@ $ ->
 
       onComplete?()
 
-  d3.select(window)
-    .on("mousemove", mousemove)
-    .on("mouseup", mouseup)
-
-  m0 = null
-  o0 = null
-
-  mousedown = ->
-    m0 = [d3.event.pageX, d3.event.pageY]
-    o0 = projection.origin()
-    d3.event.preventDefault()
-
   mousemove = ->
-    if (m0)
+    if m0?
       m1 = [d3.event.pageX, d3.event.pageY]
       o1 = [o0[0] + (m0[0] - m1[0]) / 8, o0[1] + (m1[1] - m0[1]) / 8]
       projection.origin(o1)
@@ -91,21 +97,72 @@ $ ->
       refresh()
 
   mouseup = ->
-    if (m0)
+    if m0?
       mousemove()
       m0 = null
 
+  d3.select(window).on("mousemove", mousemove).on("mouseup", mouseup)
+
+  updateFill = (d) ->
+    d.properties.hits or= 0
+    d.properties.hits *= DECAY_FACTOR
+    darken_factor = d.properties.hits / HITS_NORMALIZER
+    console.log("#{d.properties.name} #{darken_factor}") if darken_factor > 12
+    new_color = BASE_FILL_COLOR.darker(darken_factor).toString()
+    new_color
+
   refresh = ->
+    refresh_count += 1
     now = new Date().getTime()
 
     events.selectAll('path').filter((d, i) -> d.properties.expire < now).remove()
-    features['events'] = events.selectAll('path')
+    features.events = events.selectAll('path')
 
-    $.each features, (name, paths) ->
-      paths.attr('d', clip)
+    if refresh_count % DECAY_STEP == 0
+      features.countries.style 'fill', updateFill
+      features.states.style 'fill', updateFill
 
-  clip = (d) ->
-    path circle.clip(d)
+    paths.attr 'd', clip for name, paths of features
+
+  clip = (d) -> path circle.clip(d)
+
+  incrementHits = (path) ->
+    if path_data = path.data()[0]
+      properties = path_data.properties
+      properties.hits or= 0
+      properties.hits += 1
+
+  handleNewEvent = (data) ->
+    return if paused
+
+    eventName = data.data.message.body.event.name
+    if !eventLog[eventName]
+      eventLog[eventName] = {sample: data, count: 1}
+    else
+      eventLog[eventName].count += 1
+
+    geoData = data.geoData
+    latitude = geoData.latitude
+    longitude = geoData.longitude
+    countryName = geoData.country_name
+
+    if countryName == "United States"
+      incrementHits d3.select("[data-state='#{geoData.region}']")
+    else
+      incrementHits d3.select("[data-country='#{countryName}']")
+
+    events.append('svg:path')
+      .data([{
+        type: "Feature",
+        properties: {
+          expire: new Date().getTime() + POINT_TIMEOUT_MS
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [longitude, latitude]
+        }
+      }])
+      .attr('d', clip).classed(eventName, true)
 
   loadCountries ->
     loadStates ->
@@ -127,37 +184,9 @@ $ ->
         clearInterval turning
 
       window.play = ->
-        turning = setInterval (-> window.turn(0.2)), 10
-
-      play()
+        turning = setInterval (-> turn(0.2)), 10
 
       # Handle new messages from the server
-      now.message = (data) ->
-        return if paused
+      now.message = handleNewEvent
 
-        eventName = data.data.message.body.event.name
-        window.eventLog or= {}
-        if !eventLog[eventName]
-          eventLog[eventName] = {sample: data, count: 1}
-          console.log(eventName)
-        else
-          eventLog[eventName].count += 1
-
-        geoData = data.geoData
-        latitude = geoData.latitude
-        longitude = geoData.longitude
-        countryName = geoData.country_name
-
-        events.append('svg:path')
-          .data([{
-            "type": "Feature",
-            "properties": {
-              "expire": new Date().getTime() + POINT_TIMEOUT_MS
-            },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [longitude, latitude]
-            }
-          }])
-          .attr('d', clip).classed(eventName, true)
-
+      play()
