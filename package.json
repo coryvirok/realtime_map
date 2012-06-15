@@ -2,6 +2,10 @@
   "name": "realtime_map",
   "version": "0.0.1",
   "dependencies": {
+    "express": "*",
+    "connect-assets": "*",
+    "coffee-script": "*",
+    "jade": "*",
     "node-static": "*",
     "redis": "*",
     "now": "*",

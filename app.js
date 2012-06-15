@@ -20,23 +20,40 @@ console.log('starting realtime map with redisHost: ' +
             ':' + redisPort +
             ' redisTopic: ' + redisTopic);
 
-var app    = require('http').createServer(handler),
-    static = require('node-static'),
-    fs     = require('fs'),
-    redis  = require('redis'),
-    util   = require('util'),
-    nowjs  = require('now'),
-    geoip  = require('geoip');
+var express = require('express'),
 
+    fs      = require('fs'),
+    redis   = require('redis'),
+    util    = require('util'),
+    nowjs   = require('now'),
+    geoip   = require('geoip'),
+    jade    = require('jade');
+
+var app = express.createServer(
+  require('connect-assets')(),
+  express.favicon(),
+  express.static(__dirname + '/static'),
+  function(req, res, next) {
+    res.setHeader('X-Powered-By', 'Team Jeans');
+    next();
+  }
+);
+
+app.get('/map', function(req, res, next) {
+  res.render('map.jade');
+});
+
+app.listen(5000);
 
 var geoipCityData = geoip.open(geoIPDataFile);
 console.log('loaded GeoIP City data');
 
-var webroot = './static';
-var file = new(static.Server)(webroot, {
-  cache: 600,
-  headers: {'X-Powered-By': 'Team Jeans'}
-});
+// FIXME restore this
+// var webroot = './static';
+// var file = new(static.Server)(webroot, {
+//   cache: 600,
+//   headers: {'X-Powered-By': 'Team Jeans'}
+// });
 
 var redisClient = redis.createClient(redisPort, redisHost, {maxReconnectionAttempts: 2});
 redisClient.on('ready', function() {
@@ -48,24 +65,6 @@ app.on('close', function() {
 })
 
 var everyone = nowjs.initialize(app);
-
-app.listen(5000);
-
-function handler(req, res) {
-  req.addListener('end', function() {
-    file.serve(req, res, function(err, result) {
-      if (err) {
-        console.error('Error serving %s - %s', req.url, err.message);
-        if (err.status === 404 || err.status === 500) {
-          file.serveFile(util.format('/%d.html', err.status), err.status, {}, req, res);
-        } else {
-          res.writeHead(err.status, err.headers);
-          res.end();
-        }
-      }
-    });
-  });
-}
 
 redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
@@ -91,11 +90,3 @@ redisClient.on('ready', function() {
 var parseCityFromIP = function(ipAddress) {
   return geoip.City.record_by_addr(geoipCityData, ipAddress);
 };
-
-setInterval(function() {
-  // updateMap isn't defined unless a client has connected
-  if (!everyone.now.updateMap) {
-    return;
-  }
-  everyone.now.updateMap({foo: 'bar'});
-}, 5000);
