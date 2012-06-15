@@ -8,7 +8,8 @@ var eventWhitelist = {'game_start': true,
                       'game_finish': true,
                       'purchased_subscription': true,
                       'sign_up': true};
-var timestamp_lifetime_ms = 86400 * 1000;
+//var timestamp_lifetime_ms = 86400 * 1000;
+var timestamp_lifetime_ms = 30 * 60 * 1000;
 
 /***** Configure the realtime map server *****/
 
