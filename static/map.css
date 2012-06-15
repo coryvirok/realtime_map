@@ -1,14 +1,20 @@
 body {
   margin: 0;
-  background: #f26437;
+  background: #f3f1f1;
 }
 
-svg {
+#map {
+  background: #f26437;  
+  width: 67%;
+}
+
+#map svg {
   pointer-events: all;
+  margin: 0;
 }
 
 #globe-background {
-  fill: #299bd3;
+  fill: #73ccd1; /*#299bd3;*/
   stroke: #fff;
   stroke-width: 6px;
 }
@@ -31,12 +37,6 @@ path {
   fill: #f00;
 }
 
-#controls {
-  position: absolute;
-  right: 5px;
-  top: 5px;
-}
-
 #events path {
   fill: none;
   stroke: none;
@@ -50,4 +50,21 @@ path {
   fill: #91ca6e;
   stroke: #91ca6e;
   stroke-width: 10px;
+}
+
+#sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 33%;
+  height: 100%;
+  margin: 0;
+}
+
+#sidebar .bar {
+  fill: #aaa;
+}
+
+#sidebar .bar text {
+  fill: #000;
 }

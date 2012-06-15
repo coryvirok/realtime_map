@@ -1,3 +1,5 @@
+#= require gameplay_view
+
 # TODO
 # attach icons to points
 
@@ -19,9 +21,13 @@ $ ->
   $window = $(window)
   WIDTH = $window.width()
   HEIGHT = $window.height()
-  RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20
+  RADIUS = Math.min(WIDTH/3, HEIGHT/2) - 50
+  GLOBE_X = WIDTH/3
+  GLOBE_Y = HEIGHT/2
   features = {}
   events = null
+
+  gameplayView = new GameplayView '#sidebar'
 
   if location.search.match /joyent/
     window.now = nowInitialize 'http://8.19.35.8:5000'
@@ -30,7 +36,7 @@ $ ->
     .scale(RADIUS)
     .origin([-102, 20])
     .mode("orthographic")
-    .translate([WIDTH/2, HEIGHT/2])
+    .translate([GLOBE_X, GLOBE_Y])
 
   circle = d3.geo.circle().origin(projection.origin())
   path = d3.geo.path().projection(projection)
@@ -48,8 +54,8 @@ $ ->
   svg.append('circle')
     .attr('id', 'globe-background')
     .attr('r', RADIUS)
-    .attr('cx', WIDTH/2)
-    .attr('cy', HEIGHT/2)
+    .attr('cx', GLOBE_X)
+    .attr('cy', GLOBE_Y)
 
   loadCountries = (onComplete) ->
     d3.json "world-countries.json", (collection) ->
