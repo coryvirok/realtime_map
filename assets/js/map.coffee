@@ -10,6 +10,7 @@ o0 = null
 running = false
 refresh_count = 0
 window.eventLog = {}
+window.missingFeatures = {}
 
 POINT_TIMEOUT_MS = 500
 DECAY_STEP = 10
@@ -132,11 +133,15 @@ $ ->
 
   clip = (d) -> path circle.clip(d)
 
-  incrementHits = (path) ->
-    if path_data = path.data()[0]
-      properties = path_data.properties
+  incrementHits = (selector) ->
+    feature = d3.select(selector)
+    if feature_data = feature.data()[0]
+      properties = feature_data.properties
       properties.hits or= 0
       properties.hits += 1
+    else
+      missingFeatures[selector] or= 0
+      missingFeatures[selector] += 1
 
   handleNewEvent = (data) ->
     return unless running
@@ -153,9 +158,9 @@ $ ->
     countryName = geoData.country_code3
 
     if countryName == "USA"
-      incrementHits d3.select("[data-state='#{geoData.region}']")
+      incrementHits "[data-state='#{geoData.region}']"
     else
-      incrementHits d3.select("[data-country='#{countryName}']")
+      incrementHits "[data-country='#{countryName}']"
 
     events.append('svg:path')
       .data([{
@@ -168,7 +173,7 @@ $ ->
           coordinates: [longitude, latitude]
         }
       }])
-      .attr('d', clip).classed(eventName, true)
+      .attr('d', clip).attr('class', "event #{eventName}")
 
   loadCountries ->
     loadStates ->
