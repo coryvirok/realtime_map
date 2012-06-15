@@ -9,11 +9,11 @@ paused = false
 refresh_count = 0
 window.eventLog = {}
 
-POINT_TIMEOUT_MS = 1000
+POINT_TIMEOUT_MS = 500
 DECAY_STEP = 10
 DECAY_FACTOR = 0.98
-BASE_FILL_COLOR = d3.rgb("#aaa")
-HITS_NORMALIZER = 50
+BASE_FILL_COLOR = d3.rgb("#fff")
+HITS_NORMALIZER = 80
 
 $ ->
   $window = $(window)
@@ -33,7 +33,7 @@ $ ->
     .translate([WIDTH/2, HEIGHT/2])
 
   circle = d3.geo.circle().origin(projection.origin())
-  path = d3.geo.path().projection(projection).pointRadius(1.5)
+  path = d3.geo.path().projection(projection)
 
   mousedown = ->  
     m0 = [d3.event.pageX, d3.event.pageY]
