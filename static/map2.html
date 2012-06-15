@@ -36,7 +36,7 @@
         map.addLayer(marker);
 
         for (var i = 0; i < maxQueueSize - queue.length; ++i) {
-          queue.pop(queue.length - 1);
+          map.removeLayer(queue.pop(queue.length - 1));
         }
       }
     });
