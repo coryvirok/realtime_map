@@ -9,7 +9,8 @@
     "node-static": "*",
     "redis": "*",
     "now": "*",
-    "geoip": "0.3.4-1"
+    "geoip": "0.3.4-1",
+    "gzippo": "*"
   },
   "scripts": {
     "start": "node app.js 10.12.26.184 5003 events GeoLiteCity.dat"

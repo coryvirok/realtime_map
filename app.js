@@ -33,7 +33,8 @@ var express = require('express'),
     util    = require('util'),
     nowjs   = require('now'),
     geoip   = require('geoip'),
-    jade    = require('jade');
+    jade    = require('jade'),
+    gzippo  = require('gzippo');
 
 
 /***** Load and index external data files *****/
@@ -71,15 +72,14 @@ var bucketIndex = {countries: indexGeoData(worldCountriesData, usStatesData),
                    events: {}};
 
 console.log('indexed geo data');
-console.log(bucketIndex.countries);
-console.log(bucketIndex.countries['United States'].childIndex);
+
 
 /***** Instantiate and start the server *****/
 
 var app = express.createServer(
   require('connect-assets')(),
   express.favicon(),
-  express.static(__dirname + '/static'),
+  gzippo.staticGzip(__dirname + '/static'),
   function(req, res, next) {
     res.setHeader('X-Powered-By', 'Team Jeans');
     next();
