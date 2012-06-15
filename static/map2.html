@@ -16,6 +16,9 @@
 
     <script>
     $(document).ready(function() {
+      var maxQueueSize = 300;
+      var queue = [];
+
       /* 
        * Handle new messages from the server
        */
@@ -28,7 +31,13 @@
 
         var location = new L.LatLng(latitude, longitude);
         var marker = new L.Marker(location);
+
+        queue.push(marker);
         map.addLayer(marker);
+
+        for (var i = 0; i < maxQueueSize - queue.length; ++i) {
+          queue.pop(queue.length - 1);
+        }
       }
     });
     </script>
