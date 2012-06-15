@@ -72,7 +72,7 @@ $ ->
       onComplete?()
       
   loadStates = (onComplete) ->
-    d3.json 'us-states.json', (collection) ->
+    d3.json 'us.json', (collection) ->
       features.states = svg.append('svg:g')
         .attr('id', 'states')
         .selectAll("path")

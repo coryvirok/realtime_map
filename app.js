@@ -1,13 +1,17 @@
 var redisHost = 'localhost';
 var redisPort = 6379;
 var redisTopic = 'events';
-var geoIPDataFile = 'GeoLiteCity.dat';
-var geoJsonStatesFile = 'static/us-states.json';
-var geoJsonCountriesFile = 'static/world-countries.json';
 var eventWhitelist = {'game_start': true,
                       'game_finish': true,
                       'purchased_subscription': true,
                       'sign_up': true};
+
+var geoIPDataFile = 'GeoLiteCity.dat';
+var geoJsonCountriesFile = 'static/world-countries.json';
+var geoJsonUsFile = 'static/us.json';
+var geoJsonCanFile = 'static/canada.json';
+var geoJsonAusFile = 'static/australia.json';
+
 var timestamp_lifetime_ms = 86400 * 1000;
 //var timestamp_lifetime_ms = 30 * 1000;
 
@@ -44,8 +48,8 @@ var express = require('express'),
 
 /***** Load and index external data files *****/
 
-var indexGeoData = function(countriesGeoData, usStatesGeoData) {
-  var _createIndex = function(features, usId) {
+var indexGeoData = function(countriesGeoData, countryDetailData) {
+  var _createIndex = function(features, useId) {
     var ret = {};
     var numFeatures = features.length;
     var curFeature;
@@ -53,7 +57,7 @@ var indexGeoData = function(countriesGeoData, usStatesGeoData) {
 
     for (var index = 0; index < numFeatures; index++) {
       curFeature = features[index];
-      if (usId) {
+      if (useId) {
         curName = curFeature.id;
       } else {
         curName = curFeature.properties.abbrev;
@@ -65,7 +69,10 @@ var indexGeoData = function(countriesGeoData, usStatesGeoData) {
 
   // Create a mapping from country name to counter and childIndex.
   var geoIndex = _createIndex(countriesGeoData.features, true);
-  geoIndex['USA'].childIndex = _createIndex(usStatesGeoData.features, false);
+
+  for (var countryCode in countryDetailData) {
+    geoIndex[countryCode].childIndex = _createIndex(countryDetailData[countryCode].features, false);
+  }
 
   return geoIndex;
 };
@@ -76,15 +83,26 @@ console.log('loaded GeoIP City data');
 var worldCountriesData = JSON.parse(fs.readFileSync(geoJsonCountriesFile));
 console.log('loaded country geo data');
 
-var usStatesData = JSON.parse(fs.readFileSync(geoJsonStatesFile));
-console.log('loaded US states geo data');
+var usData = JSON.parse(fs.readFileSync(geoJsonUsFile));
+console.log('loaded US geo data');
+
+var canData = JSON.parse(fs.readFileSync(geoJsonCanFile));
+console.log('loaded CAN geo data');
+
+var ausData = JSON.parse(fs.readFileSync(geoJsonAusFile));
+console.log('loaded AUS geo data');
 
 // Stores counters for locations and events seen since server startup
-var indexData = indexGeoData(worldCountriesData, usStatesData);
+var indexData = indexGeoData(worldCountriesData,
+                             {'USA': usData,
+                              'CAN': canData,
+                              'AUS': ausData});
+
 var bucketIndex = {countries: indexData, events: {}};
 
 console.log('indexed geo data');
 console.log(bucketIndex.countries.USA);
+console.log(bucketIndex.countries.CAN);
 
 
 /***** Instantiate and start the server *****/
