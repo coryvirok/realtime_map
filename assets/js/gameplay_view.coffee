@@ -1,77 +1,157 @@
 class GameplayView
 
-  gamesPerSection: 5
+  gamesPerSection: 3
+
+  gameBrainAreas:
+    "Speed Match": "Speed"
+    "Spatial Speed Match": "Speed"
+    "Speed Brain: iPhone": "Speed"
+    "Speed Brain: Pre": "Speed"
+    "Circles: iPhone": "Speed"
+    "Shapes: iPhone": "Speed"
+    "Spatial: iPhone": "Speed"
+    "Speed Brain: Blackberry": "Speed"
+    "Speed Brain: Android": "Speed"
+    "Penguin Pursuit": "Speed"
+    "Rotation Matrix": "Speed"
+    "Moneycomb": "Memory"
+    "Memory Matrix": "Memory"
+    "moneycomb evaluation": "Memory"
+    "Memory Matrix: iPhone": "Memory"
+    "Memory Match": "Memory"
+    "Monster Garden": "Memory"
+    "Memory Match Overload": "Memory"
+    "Rhyme Workout": "Memory"
+    "Memory Circles: iPhone": "Memory"
+    "Memory Shapes: iPhone": "Memory"
+    "Memory Lane": "Memory"
+    "Name Tag": "Memory"
+    "Familiar Faces": "Memory"
+    "Face Memory Workout": "Memory"
+    "Birdwatching": "Attention"
+    "Top Chimp": "Attention"
+    "Space Junk": "Attention"
+    "Eagle Eye": "Attention"
+    "Observation Tower": "Attention"
+    "Lost in Migration": "Attention"
+    "Playing Koi": "Attention"
+    "Lost in Migration: iPhone": "Attention"
+    "Brain Shift": "Flexibility"
+    "Brain Shift Overdrive": "Flexibility"
+    "Disillusion": "Flexibility"
+    "Disconnection": "Flexibility"
+    "Brain Shift: iPhone": "Flexibility"
+    "Word Bubbles": "Flexibility"
+    "Word Bubbles Rising": "Flexibility"
+    "Color Match": "Flexibility"
+    "Color Match: iPhone": "Flexibility"
+    "Color Match: Pre": "Flexibility"
+    "Route to Sprout": "Flexibility"
+    "Raindrops": "Problem Solving"
+    "Addition Storm": "Problem Solving"
+    "Subtraction Storm": "Problem Solving"
+    "Division Storm": "Problem Solving"
+    "Multiplication Storm": "Problem Solving"
+    "Raindrops: iPhone": "Problem Solving"
+    "Chalkboard Challenge": "Problem Solving"
+    "Chalkboard Challenge: iPhone": "Problem Solving"
+    "By the Rules": "Problem Solving"
+    "Word Sort": "Problem Solving"
 
   constructor: (selector) ->
 
     @view = $(selector)
 
     @svg = d3.select(selector).append('svg')
-      .attr('width', @view.width())
+      .attr('width', @view.width() - 100)
       .attr('height', @view.height() - 100)
       .style('margin-top', 50)
+      .style('margin-left', 50)
 
-    for name, i in ['Memory', 'Attention', 'Speed', 'Flexibility', 'Problem Solving']
-      @buildArea(name, i) 
+    @events = {}
+    for game, area of @gameBrainAreas
+      @events[area] or= {}
+      @events[area][game] = {game: game, count: 1, times: []}
+      @events[area][game].count = 4 if game == 'Familiar Faces'
+      @events[area][game].count = 3 if game == 'Name Tag'
 
-  buildArea: (name, offset) ->
+    for area_name, i in ['Memory', 'Attention', 'Speed', 'Flexibility', 'Problem Solving']
+      @buildArea(area_name, i)
 
-    index = d3.range(@gamesPerSection)
-    data = index.map d3.random.normal(100, 10)
-
+  buildArea: (area_name, offset) ->
+    areaGames = @events[area_name]
+    data = (v for k, v of areaGames)
     height = @svg.attr('height')
+    width = @svg.attr('width')
 
     x = d3.scale.linear()
-      .domain([0, d3.max(data)])
-      .range([0, @view.width()])
+      .domain([0, d3.max(d.count for d in data)])
+      .range([0, width])
 
     start_y = height * offset / 5 + 20
     y = d3.scale.ordinal()
-      .domain(index)
+      .domain([0..@gamesPerSection-1])
       .rangeRoundBands([start_y, start_y + height / 5 - 30], .1)
 
-    area = @svg.append('g').attr('data-area', name)
+    area = @svg.append('g').attr('data-area', area_name)
 
     area.append('text')
-      .attr("text-anchor", "end")
-      .attr('x', @view.width() - 20)
-      .attr('y', start_y)
-      .text(name)
+      .attr('x', 0)
+      .attr('y', start_y - 5)
+      .text(area_name)
+      .attr('class', 'area-title')
 
     bar = area.selectAll(".bar")
       .data(data)
       .enter().append("g")
       .attr("class", "bar")
+      .sort((d1, d2) -> d2.count - d1.count)
       .attr("transform", (d, i) -> "translate(0,#{y(i)})")
+      .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
 
     bar.append("rect")
       .attr("height", y.rangeBand() - 3)
-      .attr("width", (d) -> x(d) - 10)
-      .attr("x", (d) => @view.width() - x(d) + 10)
+      .attr("width", (d) -> x(d.count) - 10)
 
     bar.append("text")
-      .attr("text-anchor", "end")
-      .attr("x", @view.width() - 20)
+      .attr("x", 10)
       .attr("y", y.rangeBand() / 2)
       .attr("dy", ".25em")
-      .text((d, i) -> i)
+      .text((d) -> d.game)
 
-    sort = false
+    bar.append('text')
+      .attr('class', 'count')
+      .attr('x', width)
+      .attr('text-anchor', 'end')
+      .attr("y", y.rangeBand() / 2)
+      .attr("dy", ".25em")
+      .text((d) -> d.count)
 
-    setInterval =>
+    setInterval (=> @refresh(area_name, bar, x, y)), 1000
 
-      if (sort = !sort)
-        index.sort((a, b) -> data[a] - data[b])
-      else
-        index = d3.range(@gamesPerSection)
+  refresh: (area_name, bar, x, y) ->
 
-      y.domain(index)
+    data = (v for k, v of @events[area_name])
+    x.domain([0, d3.max(d.count for d in data)])
 
-      bar.transition()
-        .duration(500)
-        .delay((d, i) -> i * 50)
-        .attr("transform", (d, i) -> "translate(0,#{y(i)})")
+    bar.sort((d1, d2) -> d2.count - d1.count)
+      .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
+      .transition()
+      .duration(500)
+      .delay((d, i) -> i * 50)
+      .attr("transform", (d, i) -> "translate(0,#{y(i)})")
 
-    , 3000
+    bar.selectAll('[visibility="visible"] rect').attr("width", (d) -> x(d.count) - 10)
+    bar.selectAll('[visibility="visible"] .count').text((d) -> d.count)
+
+  addEvent: (event) ->
+    game = event.prop_map.game
+    area = @gameBrainAreas[game]
+    unless area
+      # FIXME some iphone version sends 'names-like-this'
+      # console.log(game)
+      return
+    @events[area][game].times.push new Date().getTime()
+    @events[area][game].count += 1
 
 window.GameplayView = GameplayView

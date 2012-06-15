@@ -28,8 +28,6 @@ $ ->
   features = {}
   events = null
 
-  gameplayView = new GameplayView '#sidebar'
-
   if location.search.match /joyent/
     window.now = nowInitialize 'http://8.19.35.8:5000'
 
@@ -145,12 +143,13 @@ $ ->
 
   handleNewEvent = (data) ->
     return unless running
-
-    eventName = data.data.message.body.event.name
-    if !eventLog[eventName]
-      eventLog[eventName] = {sample: data, count: 1}
+    event = data.data.message.body.event
+    if !eventLog[event.name]
+      eventLog[event.name] = {sample: data, count: 1}
     else
-      eventLog[eventName].count += 1
+      eventLog[event.name].count += 1
+
+    gameplayView.addEvent(event) if event.name == 'game_finish'
 
     geoData = data.geoData
     latitude = geoData.latitude
@@ -173,7 +172,7 @@ $ ->
           coordinates: [longitude, latitude]
         }
       }])
-      .attr('d', clip).attr('class', "event #{eventName}")
+      .attr('d', clip).attr('class', "event #{event.name}")
 
   loadCountries ->
     loadStates ->
@@ -197,6 +196,8 @@ $ ->
         else if !running
           turning = setInterval (-> turn(0.2)), 10
           running = true
+
+      window.gameplayView = new GameplayView '#sidebar'
 
       # Handle new messages from the server
       now.message = handleNewEvent

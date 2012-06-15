@@ -61,10 +61,15 @@ path {
   margin: 0;
 }
 
-#sidebar .bar {
-  fill: #aaa;
+#sidebar rect {
+  fill: #73ccd1;
 }
 
-#sidebar .bar text {
-  fill: #000;
+#sidebar text {
+  font-family: 'PT Sans', sans-serif;
+  fill: #37605F;
+}
+
+#sidebar text.area-title {
+  fill: #f26437;
 }
