@@ -79,7 +79,7 @@ console.log('loaded US states geo data');
 
 // Stores counters for locations and events seen since server startup
 var indexData = indexGeoData(worldCountriesData, usStatesData);
-var bucketIndex = {countries: indexData[0],
+var bucketIndex = {countries: indexData,
                    events: {}};
 
 console.log('indexed geo data');
