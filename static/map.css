@@ -42,11 +42,11 @@ path {
   stroke: none;
 }
 
-#events path.game_finish {
+#events path.event.game_finish {
   fill: #ff0;
 }
 
-#events path.purchase_subscription {
+#events path.event.purchase_subscription {
   fill: #91ca6e;
   stroke: #91ca6e;
   stroke-width: 10px;
