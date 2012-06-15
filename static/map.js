@@ -1,14 +1,25 @@
 
-now.message = function(data) {
-  // console.log(data);
-}
-
 $(function() {
 
   var WIDTH = $(window).width(), HEIGHT = $(window).height();
   var RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20;
+  var POINT_TIMEOUT_MS = 2000;
 
   var features = {};
+  var plotQueue = [];
+
+  /* 
+   * Handle new messages from the server
+   */
+  now.message = function(data) {
+    // console.log(data);
+    var latitude = geoData.latitude;
+    var longitude = geoData.longitude;
+    var countryName = geoData.country_name;
+
+    plotQueue.push([latitude, longitude, (new Date().getMilliseconds() + POINT_TIMEOUT_MS)]);
+  }
+
 
   var projection = d3.geo.azimuthal()
       .scale(RADIUS)
@@ -102,6 +113,15 @@ $(function() {
   }
 
   function refresh(duration) {
+    var index;
+    var cur;
+
+    prunePlotQueue();
+    for (index = 0; index < plotQueue.length; ++index) {
+      cur = plotQueue[index];
+      plotLatLon(cur[0], cur[1]);
+    }
+    
     $.each(features, function(name, paths) {
       (duration ? paths.transition().duration(duration) : paths).attr("d", clip);      
     })
@@ -109,6 +129,26 @@ $(function() {
 
   function clip(d) {
     return path(circle.clip(d));
+  }
+
+  function plotLatLon(latitude, longitude) {
+    // implement me
+  }
+
+  function prunePlotQueue() {
+    var tmp = [];
+    var index;
+    var cur;
+    var now = (new Date()).getMilliseconds();
+
+    for (index = 0; index < plotQueue.length; ++index) {
+      cur = plotQueue[index];
+      if (cur.timeout > now) {
+        tmp.push(cur);
+      }
+    }
+
+    plotQueue = tmp;
   }
 
   loadCountries(function() {
