@@ -40,10 +40,7 @@ var express = require('express'),
 /***** Load and index external data files *****/
 
 var indexGeoData = function(countriesGeoData, usStatesGeoData) {
-  // Stores a mapping from country code to the index.
-  var countryCodeMapping = {}
-
-  var _createIndex = function(features, updateCountryCodeMapping) {
+  var _createIndex = function(features, usId) {
     var ret = {};
     var numFeatures = features.length;
     var curFeature;
@@ -51,20 +48,21 @@ var indexGeoData = function(countriesGeoData, usStatesGeoData) {
 
     for (var index = 0; index < numFeatures; index++) {
       curFeature = features[index];
-      curName = curFeature.properties.name;
-      ret[curName] = {counter: 0, childIndex: {}};
-      if (updateCountryCodeMapping) {
-        countryCodeMapping[curFeature.id] = ret[curName];
+      if (usId) {
+        curName = curFeature.id;
+      } else {
+        curName = curFeature.properties.name;
       }
+      ret[curName] = {counter: 0, childIndex: {}};
     }
     return ret;
   };
 
   // Create a mapping from country name to counter and childIndex.
   var geoIndex = _createIndex(countriesGeoData.features, true);
-  geoIndex['United States'].childIndex = _createIndex(usStatesGeoData.features);
+  geoIndex['USA'].childIndex = _createIndex(usStatesGeoData.features, false);
 
-  return [geoIndex, countryCodeMapping];
+  return geoIndex;
 };
 
 var geoipCityData = geoip.open(geoIPDataFile);
@@ -78,7 +76,6 @@ console.log('loaded US states geo data');
 
 // Stores counters for locations and events seen since server startup
 var indexData = indexGeoData(worldCountriesData, usStatesData);
-var countryCodeMapping = indexData[1];
 var bucketIndex = {countries: indexData[0],
                    events: {}};
 
@@ -136,7 +133,7 @@ redisClient.on('ready', function() {
           if (geoData) {
 
             // Increment country and region indices
-            var countryIndex = bucketIndex.countries[geoData.country_name] || countryCodeMapping[geoData.country_code3];
+            var countryIndex = bucketIndex.countries[geoData.country_code3];
             if (countryIndex) {
               var regionIndex = countryIndex.childIndex[geoData.region];
               countryIndex.counter = (countryIndex.counter || 0) + 1;
