@@ -29,3 +29,9 @@ path {
 #lumoslabs {
   fill: #f00;
 }
+
+#controls {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}

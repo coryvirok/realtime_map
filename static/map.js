@@ -24,7 +24,7 @@ $(function() {
 
   var projection = d3.geo.azimuthal()
       .scale(RADIUS)
-      .origin([-71.03,42.37])
+      .origin([-102, 20])
       .mode("orthographic")
       .translate([WIDTH/2, HEIGHT/2]);
 
@@ -113,7 +113,7 @@ $(function() {
     }
   }
 
-  function refresh(duration) {
+  function refresh() {
     var index;
     var cur;
 
@@ -124,7 +124,7 @@ $(function() {
     }
     
     $.each(features, function(name, paths) {
-      (duration ? paths.transition().duration(duration) : paths).attr("d", clip);      
+      paths.attr('d', clip);
     })
   }
 
@@ -153,6 +153,28 @@ $(function() {
   }
 
   loadCountries(function() {
-    loadStates();
-  })
+    loadStates(function() {
+
+      var turning;
+
+      window.turn = function(degrees) {
+        var newOrigin = projection.origin();
+        newOrigin[0] = ((newOrigin[0] + 180 + degrees) % 360) - 180;
+        projection.origin(newOrigin);
+        circle.origin(newOrigin);
+        refresh();
+      }
+
+      window.pause = function() {
+        clearInterval(turning);
+      };
+
+      window.play = function() {
+        turning = setInterval(function() { window.turn(0.2) }, 10);
+      };
+
+      play();
+    });
+  });
+
 });
