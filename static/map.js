@@ -13,6 +13,7 @@ $(function() {
    */
   now.message = function(data) {
     // console.log(data);
+    var geoData = data.geoData;
     var latitude = geoData.latitude;
     var longitude = geoData.longitude;
     var countryName = geoData.country_name;
