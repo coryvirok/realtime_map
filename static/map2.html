@@ -26,7 +26,8 @@
         var longitude = geoData.longitude;
         var countryName = geoData.country_name;
 
-        var marker = new L.LatLng(latitude, longitude);
+        var location = new L.LatLng(latitude, longitude);
+        var marker = new L.Marker(location);
         map.addLayer(marker);
       }
     });
