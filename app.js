@@ -126,13 +126,17 @@ redisClient.on('ready', function() {
 
             // Increment country and region indices
             var countryIndex = bucketIndex.countries[geoData.country_name];
-            var regionIndex = countryIndex.childIndex[geoData.region];
-            countryIndex.counter = (countryIndex.counter || 0) + 1;
-            console.log('updated country index, ' + geoData.country_name + ': ' + countryIndex.counter);
+            if (countryIndex) {
+              var regionIndex = countryIndex.childIndex[geoData.region];
+              countryIndex.counter = (countryIndex.counter || 0) + 1;
+              console.log('updated country index, ' + geoData.country_name + ': ' + countryIndex.counter);
 
-            if (regionIndex) {
-              regionIndex.counter = (regionIndex.counter || 0) + 1;
-              console.log('updated region index, ' + geoData.country_name + ', ' + geoData.region + ': ' + regionIndex.counter);
+              if (regionIndex) {
+                regionIndex.counter = (regionIndex.counter || 0) + 1;
+                console.log('updated region index, ' + geoData.country_name + ', ' + geoData.region + ': ' + regionIndex.counter);
+              }
+            } else {
+              console.log('unknown country name: ' + geoData.country_name);
             }
 
             // store a counter for events so we can send to clients on load
