@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="leaflet_dist/leaflet.css"/>
+
+    <script src='//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    <script src='//jquery-json.googlecode.com/files/jquery.json-2.2.min.js'></script>
+    <script src='//datejs.googlecode.com/svn/trunk/build/date.js'></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/nowjs/now.js"></script>
+  </head>
+  <body>
+    <div id="map" style="height: 800px"></div>
+    <script src="leaflet_dist/leaflet.js"></script>
+    <script src="map2.js"></script>
+
+    <script>
+    $(document).ready(function() {
+      /* 
+       * Handle new messages from the server
+       */
+      now.message = function(data) {
+        // console.log(data);
+        var geoData = data.geoData;
+        var latitude = geoData.latitude;
+        var longitude = geoData.longitude;
+        var countryName = geoData.country_name;
+
+        var marker = L.LatLong(latitude, longitude);
+        map.addLayer(marker);
+      }
+    });
+    </script>
+  </body>
+</html>
