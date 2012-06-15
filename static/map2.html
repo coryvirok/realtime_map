@@ -36,7 +36,10 @@
         map.addLayer(marker);
 
         for (var i = 0; i < maxQueueSize - queue.length; ++i) {
-          map.removeLayer(queue.pop(queue.length - 1));
+          marker = queue.pop(queue.length - 1);
+          console.log('removing');
+          console.log(marker);
+          map.removeLayer(marker);
         }
       }
     });
