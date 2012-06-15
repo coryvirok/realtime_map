@@ -17,6 +17,15 @@ path {
   stroke: #fff;
 }
 
+#countries path {
+  stroke-width: 1px;
+}
+
+#states path {
+  stroke-width: 0.25px;
+  fill: none;
+}
+
 #lumoslabs {
   fill: #f00;
 }
