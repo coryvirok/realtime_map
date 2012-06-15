@@ -8,6 +8,7 @@ var eventWhitelist = {'game_start': true,
                       'game_finish': true,
                       'purchased_subscription': true,
                       'sign_up': true};
+var timestamp_lifetime_ms = 86400 * 1000;
 
 /***** Configure the realtime map server *****/
 
@@ -56,7 +57,7 @@ var indexGeoData = function(countriesGeoData, usStatesGeoData) {
       } else {
         curName = curFeature.properties.abbrev;
       }
-      ret[curName] = {counter: 0, childIndex: {}};
+      ret[curName] = {totalCount: 0, timestamps: [], childIndex: {}};
     }
     return ret;
   };
@@ -133,19 +134,19 @@ redisClient.on('ready', function() {
         if (msg.message.body.visit && msg.message.body.visit.prop_map && msg.message.body.visit.prop_map.ip_address) {
           var ipAddress = msg.message.body.visit.prop_map.ip_address
           var geoData = parseCityFromIP(ipAddress);
-          if (geoData) {
+          var eventTimestamp = msg.message.body.visit.timestamp;
 
+          if (geoData) {
             // Increment country and region indices
             var countryIndex = bucketIndex.countries[geoData.country_code3];
             if (countryIndex) {
               var regionIndex = countryIndex.childIndex[geoData.region];
-              console.log('region: ' + geoData.region);
-              countryIndex.counter = (countryIndex.counter || 0) + 1;
-              console.log('updated country index, ' + geoData.country_code3 + ': ' + countryIndex.counter);
+              countryIndex.totalCount = (countryIndex.totalCount || 0) + 1;
+              countryIndex.timestamps.push(eventTimestamp);
+              countryIndex.timestamps = pruneTimestamps(countryIndex.timestamps);
 
               if (regionIndex) {
-                regionIndex.counter = (regionIndex.counter || 0) + 1;
-                console.log('updated region index, ' + geoData.country_code3 + ', ' + geoData.region + ': ' + regionIndex.counter);
+                regionIndex.totalCount = (regionIndex.totalCount || 0) + 1;
               }
             } else {
               console.log('> unknown country name/data: ' + geoData.country_code3);
@@ -153,7 +154,12 @@ redisClient.on('ready', function() {
             }
 
             // store a counter for events so we can send to clients on load
-            bucketIndex.events[eventName] = (bucketIndex.events[eventName] || 0) + 1;
+            var eventDetails = bucketIndex.events[eventName] || {totalCount: 0, timestamps: []};
+            eventDetails.totalCount = eventDetails.totalCount + 1;
+            eventDetails.timestamps.push(eventTimestamp);
+            eventDetails.timestamps = pruneTimestamps(eventDetails.timestamps);
+
+            bucketIndex.events[eventName] = eventDetails;
 
             everyone.now.message({geoData: geoData, data: msg});
           } else {
@@ -170,6 +176,15 @@ redisClient.on('ready', function() {
 
 var parseCityFromIP = function(ipAddress) {
   return geoip.City.record_by_addr(geoipCityData, ipAddress);
+};
+
+var pruneTimestamps = function(timestamps) {
+  var now = (new Date()).getMilliseconds();
+  var cutOff = now - timestamp_lifetime_ms;
+
+  return timestamps.filter(function(element, index, array) {
+    return element >= cutOff;
+  });
 };
 
 var pause = false;
