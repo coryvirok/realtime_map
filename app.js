@@ -184,8 +184,6 @@ var pruneTimestamps = function(timestamps) {
   var cutOff = now - timestamp_lifetime_ms;
 
   return timestamps.filter(function(element, index, array) {
-    console.log(element + ' >= ' + cutOff + ' = ' + (element >= cutOff));
-    console.log('now: ' + now);
     return element >= cutOff;
   });
 };
