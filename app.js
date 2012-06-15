@@ -4,7 +4,10 @@ var redisTopic = 'events';
 var geoIPDataFile = 'GeoLiteCity.dat';
 var geoJsonStatesFile = 'static/us-states.json';
 var geoJsonCountriesFile = 'static/world-countries.json';
-var eventWhitelist = {'game_start': true, 'purchased_subscription': true, 'sign_up': true};
+var eventWhitelist = {'game_start': true,
+                      'game_finish': true,
+                      'purchased_subscription': true,
+                      'sign_up': true};
 
 /***** Configure the realtime map server *****/
 

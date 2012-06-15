@@ -65,7 +65,7 @@ $ ->
         .data(collection.features)
         .enter().append("svg:path")
         .attr("d", clip)
-        .attr("data-country", (d) -> d.properties.name)
+        .attr("data-country", (d) -> d.id)
 
       features.countries.append("svg:title").text (d) -> d.properties.name
       onComplete?()
@@ -150,9 +150,9 @@ $ ->
     geoData = data.geoData
     latitude = geoData.latitude
     longitude = geoData.longitude
-    countryName = geoData.country_name
+    countryName = geoData.country_code3
 
-    if countryName == "United States"
+    if countryName == "USA"
       incrementHits d3.select("[data-state='#{geoData.region}']")
     else
       incrementHits d3.select("[data-country='#{countryName}']")
