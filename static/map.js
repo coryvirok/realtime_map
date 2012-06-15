@@ -8,7 +8,7 @@ $(function() {
   var WIDTH = $(window).width(), HEIGHT = $(window).height();
   var RADIUS = Math.min(WIDTH, HEIGHT)/2 - 20;
 
-  var feature, point;
+  var features = {};
 
   var projection = d3.geo.azimuthal()
       .scale(RADIUS)
@@ -31,38 +31,50 @@ $(function() {
     .attr('cx', WIDTH/2)
     .attr('cy', HEIGHT/2);
 
-  d3.json("world-countries.json", function(collection) {
-    feature = svg.selectAll("path")
+  var loadCountries = function(onComplete) {
+    d3.json("world-countries.json", function(collection) {
+      countries = svg.append('svg:g')
+        .attr('id', 'countries')
+        .selectAll("path")
         .data(collection.features)
-      .enter().append("svg:path")
+        .enter().append("svg:path")
         .attr("d", clip);
 
-    feature.append("svg:title").text(function(d) { return d.properties.name; });
+      countries.append("svg:title").text(function(d) { return d.properties.name; });
+      features['countries'] = countries;
 
-    var lumoslabs = {
-      "type": "Feature",
-      "properties": {"name":"Lumos Labs"},
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [-122.403743, 37.789577],
-          [-121.403743, 37.789577],
-          [-121.403743, 38.789577],
-          [-122.403743, 38.789577],
-          [-122.403743, 37.789577],
-        ]]
-      }
-    };
+      if (onComplete) onComplete();
+    });
+  };
 
-    point = svg.append('svg:path').data([lumoslabs])
-      .attr('id', 'lumoslabs')
-      .attr('d', clip);
+  var loadStates = function(onComplete) {
+    d3.json('us-states.json', function(collection) {
+      features['states'] = svg.append('svg:g')
+        .attr('id', 'states')
+        .selectAll("path")
+        .data(collection.features)
+        .enter().append("svg:path")
+        .attr("d", clip);
 
-  });
+      features['lumos'] = svg.append('svg:path')
+        .data([{
+          "type": "Feature",
+          "properties": {"name": "Lumos Labs"},
+          "geometry": {
+            "type": "Point",
+            "coordinates": [-122.403743, 37.789577],
+          }
+        }])
+        .attr('id', 'lumoslabs')
+        .attr('d', clip);
+
+      if (onComplete) onComplete();
+    })    
+  };
 
   d3.select(window)
-      .on("mousemove", mousemove)
-      .on("mouseup", mouseup);
+    .on("mousemove", mousemove)
+    .on("mouseup", mouseup);
 
   var m0, o0;
 
@@ -77,7 +89,7 @@ $(function() {
       var m1 = [d3.event.pageX, d3.event.pageY],
           o1 = [o0[0] + (m0[0] - m1[0]) / 8, o0[1] + (m1[1] - m0[1]) / 8];
       projection.origin(o1);
-      circle.origin(o1)
+      circle.origin(o1);
       refresh();
     }
   }
@@ -90,12 +102,16 @@ $(function() {
   }
 
   function refresh(duration) {
-    (duration ? feature.transition().duration(duration) : feature).attr("d", clip);
-    (duration ? point.transition().duration(duration) : point).attr("d", clip);
+    $.each(features, function(name, paths) {
+      (duration ? paths.transition().duration(duration) : paths).attr("d", clip);      
+    })
   }
 
   function clip(d) {
     return path(circle.clip(d));
   }
 
+  loadCountries(function() {
+    loadStates();
+  })
 });
