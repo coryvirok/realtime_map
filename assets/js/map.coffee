@@ -15,7 +15,7 @@ window.missingFeatures = {}
 POINT_TIMEOUT_MS = 500
 DECAY_STEP = 10
 DECAY_FACTOR = 0.98
-BASE_FILL_COLOR = d3.rgb("#fff")
+BASE_FILL_COLOR = d3.rgb("#4682B4")
 HITS_NORMALIZER = 80
 
 $ ->
@@ -27,9 +27,6 @@ $ ->
   GLOBE_Y = HEIGHT/2
   features = {}
   events = null
-
-  if location.search.match /joyent/
-    window.now = nowInitialize 'http://8.19.35.8:5000'
 
   projection = d3.geo.azimuthal()
     .scale(RADIUS)
@@ -78,18 +75,6 @@ $ ->
         .enter().append("svg:path")
         .attr("d", clip)
         .attr('data-state', (d) -> d.properties.abbrev)
-
-      features.lumos = svg.append('svg:path')
-        .data([{
-          "type": "Feature",
-          "properties": {"name": "Lumos Labs"},
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-122.403743, 37.789577]
-          }
-        }])
-        .attr('id', 'lumoslabs')
-        .attr('d', clip)
 
       onComplete?()
 
@@ -143,13 +128,8 @@ $ ->
 
   handleNewEvent = (data) ->
     return unless running
-    event = data.data.message.body.event
-    if !eventLog[event.name]
-      eventLog[event.name] = {sample: data, count: 1}
-    else
-      eventLog[event.name].count += 1
-
-    gameplayView.addEvent(event) if event.name == 'game_finish'
+    event = data.data
+    console.log(data)
 
     geoData = data.geoData
     latitude = geoData.latitude
@@ -196,8 +176,6 @@ $ ->
         else if !running
           turning = setInterval (-> turn(0.2)), 10
           running = true
-
-      window.gameplayView = new GameplayView '#sidebar'
 
       # Handle new messages from the server
       now.message = handleNewEvent

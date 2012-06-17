@@ -1,10 +1,7 @@
 var redisHost = 'localhost';
 var redisPort = 6379;
-var redisTopic = 'events';
-var eventWhitelist = {'game_start': true,
-                      'game_finish': true,
-                      'purchased_subscription': true,
-                      'sign_up': true};
+var redisTopic = 'realtime_map';
+var eventWhitelist = {item_event: true};
 
 var geoIPDataFile = 'GeoLiteCity.dat';
 var geoJsonCountriesFile = 'static/world-countries.json';
@@ -12,8 +9,7 @@ var geoJsonUsFile = 'static/us.json';
 var geoJsonCanFile = 'static/canada.json';
 var geoJsonAusFile = 'static/australia.json';
 
-var timestamp_lifetime_ms = 86400 * 1000;
-//var timestamp_lifetime_ms = 30 * 1000;
+var timestamp_lifetime_ms = 1;
 
 /***** Configure the realtime map server *****/
 
@@ -99,10 +95,7 @@ var indexData = indexGeoData(worldCountriesData,
                               'AUS': ausData});
 
 var bucketIndex = {countries: indexData, events: {}};
-
 console.log('indexed geo data');
-console.log(bucketIndex.countries.USA);
-console.log(bucketIndex.countries.CAN);
 
 
 /***** Instantiate and start the server *****/
@@ -121,9 +114,11 @@ app.get('/map', function(req, res, next) {
   res.render('map.jade');
 });
 
+/*
 app.get('/controls', function(req, res, next) {
   res.render('controls.jade');
 });
+*/
 
 app.listen(5000);
 
@@ -148,12 +143,12 @@ redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
     if (everyone.now.message) {
       var msg = JSON.parse(data);
-      var eventName = msg.message.body.event.name;
+      var eventName = msg.action;
       if (eventWhitelist[eventName]) {
-        if (msg.message.body.visit && msg.message.body.visit.prop_map && msg.message.body.visit.prop_map.ip_address) {
-          var ipAddress = msg.message.body.visit.prop_map.ip_address
+        if (msg.ip_address) {
+          var ipAddress = msg.ip_address;
           var geoData = parseCityFromIP(ipAddress);
-          var eventTimestamp = msg.message.body.visit.timestamp;
+          var eventTimestamp = msg.timestamp;
 
           if (geoData) {
             // Increment country and region indices

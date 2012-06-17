@@ -4,8 +4,8 @@ body {
 }
 
 #map {
-  background: #f26437;  
-  width: 67%;
+  background: #EEEEEE;  
+  width: 100%;
 }
 
 #map svg {
@@ -14,18 +14,18 @@ body {
 }
 
 #globe-background {
-  fill: #73ccd1; /*#299bd3;*/
+  fill: #2A2A2A;
   stroke: #fff;
-  stroke-width: 6px;
+  stroke-width: 0.25px;
 }
 
 path {
-  fill: #fff;
+  fill: #4682B4;
   stroke: #fff;
 }
 
 #countries path {
-  stroke-width: 1px;
+  stroke-width: 0.25px;
 }
 
 #states path {
@@ -33,52 +33,7 @@ path {
   fill: none;
 }
 
-#lumoslabs {
-  fill: #f00;
-}
-
 #events path {
-  fill: none;
-  stroke: none;
-}
-
-#events path.event.game_finish {
-  fill: #ff0;
-}
-
-#events path.event.purchase_subscription {
-  fill: #91ca6e;
-  stroke: #91ca6e;
-  stroke-width: 10px;
-}
-
-#sidebar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 33%;
-  height: 100%;
-  margin: 0;
-}
-
-#sidebar rect {
-  fill: #73ccd1;
-}
-
-#sidebar text {
-  font-family: 'PT Sans', sans-serif;
-  fill: #37605F;
-}
-
-#sidebar text.area-title {
-  fill: #f26437;
-}
-
-#sidebar #footnote {
-  font-family: 'PT Sans', sans-serif;
-  font-size: 0.8em;
-  right: 50px;
-  bottom: 10px;
-  position: absolute;
-  color: #7e8082;
+  fill: #F79306;
+  stroke: #F79306;
 }
