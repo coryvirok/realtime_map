@@ -43,7 +43,7 @@ path {
 }
 
 #events path.event.game_finish {
-  fill: #ff0;
+  fill: #2D64FA;
 }
 
 #events path.event.purchase_subscription {
