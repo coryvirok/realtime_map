@@ -13,6 +13,6 @@
     "gzippo": "*"
   },
   "scripts": {
-    "start": "node app.js 10.12.26.127 5553 events GeoLiteCity.dat"
+    "start": "node app.js 10.12.26.184 5003 events GeoLiteCity.dat"
   }
 }
