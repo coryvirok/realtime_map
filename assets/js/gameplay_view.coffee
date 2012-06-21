@@ -78,6 +78,10 @@ class GameplayView
 
   barWidth: (d) => Math.max(@x(d.count) - 30, 1)
 
+  barCmp: (d1, d2) -> 
+    count = d2.count - d1.count
+    if count == 0 then d1.game > d2.game else count
+
   buildAreas: (area_name, offset) ->
     height = @svg.attr('height')
     width = @svg.attr('width')
@@ -109,7 +113,7 @@ class GameplayView
         .data(data)
         .enter().append("g")
         .attr("class", "bar")
-        .sort((d1, d2) -> d2.count - d1.count)
+        .sort(barCmp)
         .attr("transform", (d, i) -> "translate(0,#{y(i)})")
         .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
 
@@ -156,7 +160,7 @@ class GameplayView
       do (setup, @x, @gamesPerSection, @barWidth) ->
         bar = setup[0]
         y = setup[1]
-        bar.sort((d1, d2) -> d2.count - d1.count)
+        bar.sort(barCmp)
           .attr('visibility', (d, i) => 
             if i < @gamesPerSection then 'visible' else 'hidden')
           .transition()
