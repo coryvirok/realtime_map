@@ -157,7 +157,7 @@ class GameplayView
     @x.domain [0, @max]
 
     for setup in area_setups
-      do (setup, @x, @gamesPerSection, @barWidth) ->
+      do (setup, @x, @gamesPerSection, @barWidth, @barCmp) ->
         bar = setup[0]
         y = setup[1]
         bar.sort(@barCmp)
