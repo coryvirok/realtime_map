@@ -113,7 +113,7 @@ class GameplayView
         .data(data)
         .enter().append("g")
         .attr("class", "bar")
-        .sort(barCmp)
+        .sort(@barCmp)
         .attr("transform", (d, i) -> "translate(0,#{y(i)})")
         .attr('visibility', (d, i) => if i < @gamesPerSection then 'visible' else 'hidden')
 
@@ -160,7 +160,7 @@ class GameplayView
       do (setup, @x, @gamesPerSection, @barWidth) ->
         bar = setup[0]
         y = setup[1]
-        bar.sort(barCmp)
+        bar.sort(@barCmp)
           .attr('visibility', (d, i) => 
             if i < @gamesPerSection then 'visible' else 'hidden')
           .transition()
