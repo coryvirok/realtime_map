@@ -2,15 +2,15 @@
   "name": "realtime_map",
   "version": "0.0.1",
   "dependencies": {
-    "express": "*",
-    "connect-assets": "*",
-    "coffee-script": "*",
-    "jade": "*",
-    "node-static": "*",
-    "redis": "*",
-    "now": "*",
+    "coffee-script": "1.6.2",
+    "connect-assets": "2.4.1",
+    "express": "3.2.0",
     "geoip": "0.3.4-1",
-    "gzippo": "*"
+    "gzippo": "0.2.0",
+    "jade": "0.29.0",
+    "node-static": "0.6.9",
+    "now": "0.8.1",
+    "redis": "0.8.3"
   },
   "scripts": {
     "start": "node app.js 10.12.26.184 5003 events GeoLiteCity.dat"
