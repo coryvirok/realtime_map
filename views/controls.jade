@@ -1,3 +1,5 @@
+extends layout
+
 block head
   != js('controls')
   meta(name="viewport", content="width=device-width, initial-scale=1, maximum-scale=1")
@@ -5,4 +7,5 @@ block head
     body { text-align: center; margin: 100px 0 }
     button { width: 80%; font-size: 30pt }
 
-button#toggle pause?
+block body
+  button#toggle pause?

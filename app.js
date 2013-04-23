@@ -29,7 +29,7 @@ if (process.argv.length >= 3) {
     }
   }
 }
-console.log('starting realtime map with redisHost: ' + 
+console.log('starting realtime map with redisHost: ' +
             redisHost +
             ':' + redisPort +
             ' redisTopic: ' + redisTopic);
@@ -107,15 +107,14 @@ console.log(bucketIndex.countries.CAN);
 
 /***** Instantiate and start the server *****/
 
-var app = express.createServer(
-  require('connect-assets')(),
-  express.favicon(),
-  gzippo.staticGzip(__dirname + '/static'),
-  function(req, res, next) {
-    res.setHeader('X-Powered-By', 'Team Jeans');
-    next();
-  }
-);
+var app = express();
+app.use(require('connect-assets')());
+app.use(express.favicon());
+app.use(gzippo.staticGzip(__dirname + '/static'));
+app.use(function(req, res, next) {
+  res.setHeader('X-Powered-By', 'Team Jeans');
+  next();
+});
 
 app.get('/map', function(req, res, next) {
   res.render('map.jade');
@@ -125,7 +124,7 @@ app.get('/controls', function(req, res, next) {
   res.render('controls.jade');
 });
 
-app.listen(5000);
+var httpServer = app.listen(5000);
 
 
 /***** Instantiate redis client and subscribe to events channel *****/
@@ -142,7 +141,7 @@ app.on('close', function() {
 
 /***** Initialize and start the nowjs server *****/
 
-var everyone = nowjs.initialize(app);
+var everyone = nowjs.initialize(httpServer);
 
 redisClient.on('ready', function() {
   redisClient.on('message', function(channel, data) {
